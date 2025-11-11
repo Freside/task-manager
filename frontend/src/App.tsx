@@ -1,9 +1,20 @@
-export default function App() {
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Boards from "./pages/Boards";
+import BoardDetail from "./pages/BoardDetail.tsx";
+
+function App() {
     return (
-        <div className="flex h-screen items-center justify-center">
-            <h1 className="text-3xl font-bold text-blue-600">
-                Task Manager ReactTS + TailwindCSS + Vite + MobX
-            </h1>
-        </div>
-    )
+        <BrowserRouter>
+            <Routes>
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/boards" element={<Boards />} />
+                <Route path="/boards/:boardId" element={<BoardDetail />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
+
+export default App;

@@ -1,4 +1,4 @@
-# Task Manager
+# Task Manager (Trello Analogue)
 
 Языки программирования
 
@@ -14,7 +14,7 @@
 [![MobX](https://img.shields.io/badge/MobX-6.15.0-FFCB2B?logo=mobx&logoColor=white)](https://mobx.js.org/)
 [![Ant Design](https://img.shields.io/badge/Ant%20Design-5.28.1-0170FE?logo=ant-design&logoColor=white)](https://ant.design/)
 [![Echo](https://img.shields.io/badge/Echo-4.13.4-2EC1AC?logo=echo&logoColor=white)](https://echo.labstack.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-UNKNOWN-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14.19-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
 Инструменты окружения
 

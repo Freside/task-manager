@@ -2,32 +2,45 @@ package main
 
 import (
 	"log"
-	"os"
+	"task-manager/backend/internal/db"
+	"task-manager/backend/internal/handlers"
+	customMiddleware "task-manager/backend/internal/middleware" //Тут переименовал чтобы было понятнее
 
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echomiddleware "github.com/labstack/echo/v4/middleware" // Чтобы не было конфликта имён
 )
 
 func main() {
-	// Загружаем .env
-	if err := godotenv.Load(); err != nil {
-		log.Println("⚠️  .env file not found, using defaults")
-	}
+	// Подключение к БД
+	db.Connect()
+	defer db.Pool.Close()
 
 	e := echo.New()
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
 
-	e.GET("/api/health", func(c echo.Context) error {
-		return c.JSON(200, map[string]string{"status": "ok"})
-	})
+	// Middleware
+	e.Use(echomiddleware.Logger())
+	e.Use(echomiddleware.Recover())
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	// Публичный роут (для проверки состояния)
+	e.GET("/api/health", handlers.Health)
 
-	log.Println("🚀 Server started on port", port)
-	e.Logger.Fatal(e.Start(":" + port))
+	// Регистрация и логин
+	e.POST("/api/register", handlers.Register)
+	e.POST("/api/login", handlers.Login)
+
+	// Приватные маршруты
+	api := e.Group("/api")
+	api.Use(customMiddleware.JWTMiddleware)
+
+	api.GET("/boards", handlers.GetBoards)
+	api.POST("/boards", handlers.CreateBoard)
+
+	api.GET("/boards/:board_id/columns", handlers.GetColumns)
+	api.POST("/columns", handlers.CreateColumn)
+
+	api.GET("/columns/:column_id/cards", handlers.GetCards)
+	api.POST("/cards", handlers.CreateCard)
+
+	log.Println("🚀 Сервер запущен на http://localhost:8080")
+	e.Logger.Fatal(e.Start(":8080"))
 }

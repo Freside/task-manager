@@ -1,0 +1,22 @@
+# Node
+node_modules/
+dist/
+
+# Go
+bin/
+*.exe
+*.out
+
+# Env
+*.env
+.env
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Docker volumes
+pgdata/
