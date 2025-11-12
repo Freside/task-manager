@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { boardStore } from "../stores/BoardStore";
 import { useParams } from "react-router-dom";
-import { Card, List, Input, Button, message } from "antd";
+import { Card, List, Input, Button, message, Empty } from "antd";
 
 const BoardDetail = observer(() => {
     const { boardId } = useParams<{ boardId: string }>();
@@ -11,19 +11,25 @@ const BoardDetail = observer(() => {
 
     useEffect(() => {
         if (boardId) {
-            boardStore.fetchBoards() // <- загружаем доски
+            boardStore
+                .fetchBoards()
                 .then(async () => {
                     await boardStore.fetchColumns(Number(boardId));
-                    await Promise.all(
-                        boardStore.columns.map(col =>
-                            boardStore.fetchCards(col.id).catch(err => message.error(err.message))
-                        )
-                    );
+
+                    // Безопасная проверка — если колонок нет, не вызываем fetchCards
+                    if (boardStore.columns?.length) {
+                        await Promise.all(
+                            boardStore.columns.map(col =>
+                                boardStore
+                                    .fetchCards(col.id)
+                                    .catch(err => message.error(err.message))
+                            )
+                        );
+                    }
                 })
                 .catch(err => message.error(err.message));
         }
     }, [boardId]);
-
 
     const boardTitle =
         boardStore.boards.length > 0
@@ -36,6 +42,9 @@ const BoardDetail = observer(() => {
             await boardStore.createColumn(newColumnTitle.trim());
             message.success("Колонка создана!");
             setNewColumnTitle("");
+
+            // После создания — обновляем список колонок
+            await boardStore.fetchColumns(Number(boardId));
         } catch (err: any) {
             message.error(err.message);
         }
@@ -48,6 +57,9 @@ const BoardDetail = observer(() => {
             await boardStore.createCard(title, columnId);
             message.success("Карточка создана!");
             setNewCardTitles(prev => ({ ...prev, [columnId]: "" }));
+
+            // После добавления карточки — обновляем карточки этой колонки
+            await boardStore.fetchCards(columnId);
         } catch (err: any) {
             message.error(err.message);
         }
@@ -69,8 +81,11 @@ const BoardDetail = observer(() => {
             </div>
 
             <div className="flex gap-4 overflow-x-auto">
-                {boardStore.columns.length === 0 ? (
-                    <p className="text-gray-500">Колонки пока отсутствуют</p>
+                {!boardStore.columns || boardStore.columns.length === 0 ? (
+                    <Empty
+                        description="На этой доске пока нет колонок"
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    />
                 ) : (
                     boardStore.columns.map(column => (
                         <Card
@@ -92,11 +107,14 @@ const BoardDetail = observer(() => {
                                     onChange={e =>
                                         setNewCardTitles(prev => ({
                                             ...prev,
-                                            [column.id]: e.target.value
+                                            [column.id]: e.target.value,
                                         }))
                                     }
                                 />
-                                <Button type="primary" onClick={() => handleAddCard(column.id)}>
+                                <Button
+                                    type="primary"
+                                    onClick={() => handleAddCard(column.id)}
+                                >
                                     Добавить
                                 </Button>
                             </div>
